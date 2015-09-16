@@ -1,8 +1,35 @@
 #!/usr/bin/python
 
-import urllib2, json
-import sys, os, glob
+import urllib2
+import json
+import sys
+import os
+import glob
 import datetime
+
+
+class FixedHTTPRedirectHandler(urllib2.HTTPRedirectHandler):
+    """
+    Overrides the redirect_request method in urllib2 to support HTTP DELETE.
+    For reasons unknown, the server always tries to redirect you and the original
+    redirect_request does not support DELETE.
+    """
+    def redirect_request(self, req, fp, code, msg, headers, newurl):
+        m = req.get_method()
+        if (code in (301, 302, 303, 307) and m in ("GET", "HEAD")
+            or code in (301, 302, 303) and m in ("POST", "DELETE")):
+            newurl = newurl.replace(' ', '%20')
+            newheaders = dict((k,v) for k,v in req.headers.items()
+                              if k.lower() not in ("content-length", "content-type")
+                             )
+            newrequest = urllib2.Request(newurl,
+                                 headers=newheaders,
+                                 origin_req_host=req.get_origin_req_host(),
+                                 unverifiable=True)
+            newrequest.get_method = req.get_method
+            return newrequest
+        else:
+            raise urllib2.HTTPError(req.get_full_url(), code, msg, headers, fp)
 
 def get_json(url, headers=''):
     request = urllib2.Request(url)
@@ -30,12 +57,12 @@ def load_json(full_path):
         print e
     return response
     
-def to_UTF8(input):
-    if isinstance(input,dict):
-        return {to_UTF8(k):to_UTF8(v) for k,v in input.iteritems()}
-    elif isinstance(input,list):
-        return [to_UTF8(x) for x in input]
-    elif isinstance(input,unicode):
+def encode_utf8(input):
+    if isinstance(input, dict):
+        return {encode_utf8(k): encode_utf8(v) for k, v in input.iteritems()}
+    elif isinstance(input, list):
+        return [encode_utf8(x) for x in input]
+    elif isinstance(input, unicode):
         return input.encode('utf-8')
     else:
         return input
