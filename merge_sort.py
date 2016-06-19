@@ -1,4 +1,6 @@
 __author__ = 'Simon'
+import random
+import cProfile
 
 def merge_sort(array):
     if len(array) == 1:
@@ -35,7 +37,6 @@ def merge(left, right):
     return merged
 
 if __name__ == "__main__":
-    unsorted_array = [5, 1, 2, 6, 4, 3]
-    a = [1, 4]
-    b = [3, 6, 7]
-    print merge_sort(unsorted_array)
+    n = 100000
+    unsorted_array = [random.randint(0, n) for i in xrange(n)]
+    cProfile.run( 'merge_sort(unsorted_array)' )

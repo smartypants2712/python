@@ -44,7 +44,7 @@ def sift_down(a, start, end):
 
 if __name__ == "__main__":
     n = 100000
-    a = random.sample(range(n), n)
+    a = [random.randint(0, n) for i in xrange(n)]
     cProfile.run('heap_sort(a)')
-    # heap_sort(a)
+    # print heap_sort(a)
 
