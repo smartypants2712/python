@@ -38,5 +38,5 @@ def merge(left, right):
 
 if __name__ == "__main__":
     n = 100000
-    unsorted_array = [random.randint(0, n) for i in xrange(n)]
-    cProfile.run( 'merge_sort(unsorted_array)' )
+    a = [random.randint(0, n) for i in xrange(n)]
+    cProfile.run( 'merge_sort(a)' )

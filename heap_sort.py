@@ -31,7 +31,7 @@ def sift_down(a, start, end):
         left = root * 2 + 1
         right = left + 1
         swap = root
-        if a[left] > a[root]:
+        if a[left] > a[swap]:
             swap = left
         if right <= end and a[right] > a[swap]:
             swap = right
