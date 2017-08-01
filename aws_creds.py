@@ -2,6 +2,13 @@
 
 # Helper to export or unset AWS credentials from ~/.aws/credentials
 # into environment variables
+# 
+# Usage:
+#   - Set "myprofile" AWS credentials
+#       eval $(~/aws_creds.py -p myprofile)
+#   - Unset AWS credentials
+#       eval $(~/aws_creds.py -u)
+#
 
 import argparse
 import sys
