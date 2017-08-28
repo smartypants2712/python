@@ -24,6 +24,7 @@ def create_auth_header(signature):
     header = "AWS4-HMAC-SHA256" + " " + \
             "Credential=" + creds.access_key + "/" + strftime("%Y%m%d") + "/" + \
             REGION + "/" + SERVICE + "/" + "aws4_request,SignedHeaders=content-type;host;x-amz-content-sha256;x-amz-date;x-amz-security-token,Signature=" + signature
+    headers_dict["authorization"] = header
     logging.debug("Authorization header: %s" % header)
     return header
 
@@ -51,28 +52,37 @@ def create_string_to_sign(canonical_request):
 
 def create_headers(bucket, content_hash):
     logging.info("Create headers...")
-    host = bucket + ".s3.amazonaws.com"
-    security_token = creds.token
-    headers = "content-type:application/x-www-form-urlencoded; charset=utf-8" + "\n" + \
-            "host:" + host + "\n" + \
-            "x-amz-content-sha256:" + content_hash + "\n" + \
-            "x-amz-date:" + date + "\n" + \
-            "x-amz-security-token:" + security_token
+    headers_dict["content-type"] = "application/x-www-form-urlencoded; charset=utf-8"
+    headers_dict["host"] = bucket + ".s3.amazonaws.com"
+    headers_dict["x-amz-content-sha256"] = content_hash
+    headers_dict["x-amz-date"] = date
+    headers_dict["x-amz-security-token"] = creds.token
+    headers = "content-type:" + headers_dict["content-type"] + "\n" + \
+            "host:" + headers_dict["host"] + "\n" + \
+            "x-amz-content-sha256:" + headers_dict["x-amz-content-sha256"] + "\n" + \
+            "x-amz-date:" + headers_dict["x-amz-date"] + "\n" + \
+            "x-amz-security-token:" + headers_dict["x-amz-security-token"]
     logging.debug("\n----- BEGIN REQUEST HEADERS -----\n%s\n----- END REQUEST HEADERS -----" % headers)
     return headers
 
 def create_canonical_req(bucket, request_payload="", http_request_method="GET", uri="/", query_string=""):
     logging.info("Create canonical request...")
+    hashed_payload = hashlib.sha256(request_payload).hexdigest()
+    headers = create_headers(bucket, hashed_payload)
     signed_headers = "content-type;host;x-amz-content-sha256;x-amz-date;x-amz-security-token"
-    h = hashlib.sha256(request_payload).hexdigest()
-    headers = create_headers(bucket, h)
     canonical_req = http_request_method + "\n" + \
                     uri + "\n" + \
                     query_string + "\n" + \
                     headers + "\n\n" + \
-                    signed_headers + "\n" + h
+                    signed_headers + "\n" + hashed_payload
     logging.debug("\n----- BEGIN CANONICAL REQUEST -----\n%s\n----- END CANONICAL REQEUST -----" % canonical_req)
     return canonical_req
+
+def print_curl_cmd(bucket, path, headers):
+    cmd = "curl " + "https://" + bucket + ".s3.amazonaws.com" + path + " "
+    for key in headers_dict:
+        cmd += "-H \"" + key + ": " + headers_dict[key] + "\" "
+    logging.info("\n----- BEGIN CURL COMMAND ----- \n%s\n----- END CURL COMMAND -----" % cmd)
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description='Generate signature (authorization header) for AWS REST calls')
@@ -86,9 +96,12 @@ if __name__ == "__main__":
         log_level = logging.DEBUG
     logging.basicConfig(stream=sys.stderr, level=log_level)
 
+    headers_dict = {}
+
     creq = create_canonical_req(args.bucket, uri=args.path)
     string = create_string_to_sign(creq)
     key = create_signing_key()
     signature = hmac_sha256(key, string).hexdigest()
     logging.debug("Signature: %s" % signature)
     create_auth_header(signature)
+    print_curl_cmd(args.bucket, args.path, headers_dict)
