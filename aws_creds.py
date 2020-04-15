@@ -12,7 +12,7 @@
 
 import argparse
 import sys
-import ConfigParser
+import configparser
 
 CREDENTIALS_FILE='/Users/simon.so/.aws/credentials'
 
@@ -25,7 +25,7 @@ if args.unset:
     print('unset AWS_ACCESS_KEY_ID; unset AWS_SECRET_ACCESS_KEY; unset AWS_SESSION_TOKEN; unset REGION')
     sys.exit(0)
 
-c = ConfigParser.RawConfigParser()
+c = configparser.RawConfigParser()
 c.read(CREDENTIALS_FILE)
 
 aws_access_key_id = c.get(args.profile, 'aws_access_key_id')
