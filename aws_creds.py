@@ -31,6 +31,6 @@ c.read(CREDENTIALS_FILE)
 aws_access_key_id = c.get(args.profile, 'aws_access_key_id')
 aws_secret_access_key = c.get(args.profile, 'aws_secret_access_key')
 aws_session_token = c.get(args.profile, 'aws_session_token')
-region = c.get(args.profile, 'region', 'us-east-1')
+region = c.get(args.profile, 'region', fallback='us-east-1')
 
 print('export AWS_ACCESS_KEY_ID={}; export AWS_SECRET_ACCESS_KEY={}; export AWS_SESSION_TOKEN={}; export REGION={}'.format( aws_access_key_id, aws_secret_access_key, aws_session_token, region))
