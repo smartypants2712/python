@@ -1,4 +1,4 @@
-#!/usr/bin/python
+#!/usr/local/bin/python3
 
 # Helper to export or unset AWS credentials from ~/.aws/credentials
 # into environment variables
@@ -22,7 +22,7 @@ parser.add_argument('-u', '--unset', action='store_true', help='Unset environmen
 args = parser.parse_args()
 
 if args.unset:
-    print 'unset AWS_ACCESS_KEY_ID; unset AWS_SECRET_ACCESS_KEY; unset REGION'
+    print('unset AWS_ACCESS_KEY_ID; unset AWS_SECRET_ACCESS_KEY; unset AWS_SESSION_TOKEN; unset REGION')
     sys.exit(0)
 
 c = ConfigParser.RawConfigParser()
@@ -30,6 +30,7 @@ c.read(CREDENTIALS_FILE)
 
 aws_access_key_id = c.get(args.profile, 'aws_access_key_id')
 aws_secret_access_key = c.get(args.profile, 'aws_secret_access_key')
+aws_session_token = c.get(args.profile, 'aws_session_token')
 region = c.get(args.profile, 'region')
 
-print 'export AWS_ACCESS_KEY_ID=%s; export AWS_SECRET_ACCESS_KEY=%s; export REGION=%s' % ( aws_access_key_id, aws_secret_access_key, region )
+print('export AWS_ACCESS_KEY_ID={}; export AWS_SECRET_ACCESS_KEY={}; export AWS_SESSION_TOKEN={}; export REGION={}'.format( aws_access_key_id, aws_secret_access_key, aws_session_token, region))
